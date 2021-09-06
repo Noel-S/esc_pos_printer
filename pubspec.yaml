@@ -9,11 +9,13 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  esc_pos_utils: ^1.0.0
+  esc_pos_utils: 
+    git:
+      url: https://github.com/Noel-S/esc_pos_utils.git
   # esc_pos_utils:
   #   path: ../esc_pos_utils
   charset_converter: ^1.0.3
-  image: ^2.1.4
+  image: ^3.0.2
 
 dev_dependencies:
   flutter_test:
