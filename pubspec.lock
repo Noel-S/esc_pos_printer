@@ -97,6 +97,15 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_usb_printer:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: b0738aa7368d94135297cc1ca4317969ad40d9a9
+      url: "https://github.com/Noel-S/flutter_usb_printer.git"
+    source: git
+    version: "0.0.1"
   gbk_codec:
     dependency: transitive
     description:
@@ -223,4 +232,4 @@ packages:
     version: "5.1.2"
 sdks:
   dart: ">=2.12.0 <3.0.0"
-  flutter: ">=1.10.0"
+  flutter: ">=1.20.0"
