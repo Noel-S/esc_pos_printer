@@ -9,16 +9,14 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  esc_pos_utils: 
-    git:
-      url: https://github.com/Noel-S/esc_pos_utils.git
-  # esc_pos_utils:
-  #   path: ../esc_pos_utils
-  charset_converter: ^1.0.3
   image: ^3.0.2
+  esc_pos_utils: 
+    path: ../esc_pos_utils/
   flutter_usb_printer:
     git:
       url: https://github.com/Noel-S/flutter_usb_printer.git
+  flutter_bluetooth_basic:
+    path: ../flutter_bluetooth_basic/
 
 dev_dependencies:
   flutter_test:

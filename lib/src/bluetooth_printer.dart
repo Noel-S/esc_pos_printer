@@ -10,13 +10,16 @@
 import 'dart:typed_data' show Uint8List;
 import 'package:esc_pos_printer/src/printer.dart';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
-import 'package:flutter_usb_printer/flutter_usb_printer.dart';
+import 'package:flutter_bluetooth_basic/flutter_bluetooth_basic.dart';
+// import 'package:flutter/scheduler.dart';
+// import 'package:flutter/material.dart';
+// import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
 import 'package:image/image.dart';
-import './enums.dart';
+// import './enums.dart';
 
 /// USB Printer
-class USBPrinter extends Printer {
-  USBPrinter(PaperSize paperSize, CapabilityProfile profile, {int spaceBetweenRows = 5}) : super(paperSize, profile) {
+class BluetoothPrinter extends Printer {
+  BluetoothPrinter(PaperSize paperSize, CapabilityProfile profile, {int spaceBetweenRows = 5}) : super(paperSize, profile) {
     _generator = Generator(paperSize, profile, spaceBetweenRows: spaceBetweenRows);
   }
 
@@ -24,7 +27,7 @@ class USBPrinter extends Printer {
   // final CapabilityProfile _profile;
   Generator _generator;
   // Socket _socket;
-  final FlutterUsbPrinter _usbWrite = FlutterUsbPrinter();
+  final _bluetoothConnection = BluetoothManager.instance;
   // PaperSize get paperSize => _paperSize;
   // CapabilityProfile get profile => _profile;
 
@@ -38,9 +41,12 @@ class USBPrinter extends Printer {
     String address,
   }) async {
     try {
-      await _usbWrite.connect(vendorId, productId);
-      await _usbWrite.write(Uint8List.fromList(_generator.reset()));
-      return true;
+      final dynamic res = await _bluetoothConnection.connectToAddress(address);
+      if (res == true) {
+        _bluetoothConnection.writeData(Uint8List.fromList(_generator.reset()));
+        return true;
+      }
+      return false;
     } catch (e) {
       return false;
     }
@@ -48,15 +54,16 @@ class USBPrinter extends Printer {
 
   @override
   Future<void> disconnect({int delayMs}) async {
-    _usbWrite.close();
     if (delayMs != null) {
       await Future.delayed(Duration(milliseconds: delayMs), () => null);
     }
+    await _bluetoothConnection.disconnect();
+    // await _bluetoothConnection.destroy();
   }
 
   @override
   void reset() {
-    _usbWrite.write(Uint8List.fromList(_generator.reset()));
+    _bluetoothConnection.writeData(Uint8List.fromList(_generator.reset()));
   }
 
   @override
@@ -67,68 +74,67 @@ class USBPrinter extends Printer {
     bool containsChinese = false,
     int maxCharsPerLine,
   }) {
-    _usbWrite.write(Uint8List.fromList(
+    _bluetoothConnection.writeData(Uint8List.fromList(
         _generator.text(text, styles: styles, linesAfter: linesAfter, containsChinese: containsChinese, maxCharsPerLine: maxCharsPerLine)));
   }
 
   @override
   void setGlobalCodeTable(String codeTable) {
-    _usbWrite.write(Uint8List.fromList(_generator.setGlobalCodeTable(codeTable)));
+    _bluetoothConnection.writeData(Uint8List.fromList(_generator.setGlobalCodeTable(codeTable)));
   }
 
   @override
   void setGlobalFont(PosFontType font, {int maxCharsPerLine}) {
-    _usbWrite.write(Uint8List.fromList(_generator.setGlobalFont(font, maxCharsPerLine: maxCharsPerLine)));
+    _bluetoothConnection.writeData(Uint8List.fromList(_generator.setGlobalFont(font, maxCharsPerLine: maxCharsPerLine)));
   }
 
   @override
   void setStyles(PosStyles styles, {bool isKanji = false}) {
-    _usbWrite.write(Uint8List.fromList(_generator.setStyles(styles, isKanji: isKanji)));
+    _bluetoothConnection.writeData(Uint8List.fromList(_generator.setStyles(styles, isKanji: isKanji)));
   }
 
   @override
   void rawBytes(List<int> cmd, {bool isKanji = false}) {
-    _usbWrite.write(Uint8List.fromList(_generator.rawBytes(cmd, isKanji: isKanji)));
+    _bluetoothConnection.writeData(Uint8List.fromList(_generator.rawBytes(cmd, isKanji: isKanji)));
   }
 
   @override
   void emptyLines(int n) {
-    _usbWrite.write(Uint8List.fromList(_generator.emptyLines(n)));
+    _bluetoothConnection.writeData(Uint8List.fromList(_generator.emptyLines(n)));
   }
 
   @override
   void feed(int n) {
-    _usbWrite.write(Uint8List.fromList(_generator.feed(n)));
+    _bluetoothConnection.writeData(Uint8List.fromList(_generator.feed(n)));
   }
 
   @override
   void cut({PosCutMode mode = PosCutMode.full}) {
-    _usbWrite.write(Uint8List.fromList(_generator.cut(mode: mode)));
+    _bluetoothConnection.writeData(Uint8List.fromList(_generator.cut(mode: mode)));
   }
 
   @override
   void printCodeTable({String codeTable}) {
-    _usbWrite.write(Uint8List.fromList(_generator.printCodeTable(codeTable: codeTable)));
+    _bluetoothConnection.writeData(Uint8List.fromList(_generator.printCodeTable(codeTable: codeTable)));
   }
 
   @override
   void beep({int n = 3, PosBeepDuration duration = PosBeepDuration.beep450ms}) {
-    _usbWrite.write(Uint8List.fromList(_generator.beep(n: n, duration: duration)));
+    _bluetoothConnection.writeData(Uint8List.fromList(_generator.beep(n: n, duration: duration)));
   }
 
   @override
   void reverseFeed(int n) {
-    _usbWrite.write(Uint8List.fromList(_generator.reverseFeed(n)));
+    _bluetoothConnection.writeData(Uint8List.fromList(_generator.reverseFeed(n)));
   }
 
   @override
   void row(List<PosColumn> cols) {
-    _usbWrite.write(Uint8List.fromList(_generator.row(cols)));
+    _bluetoothConnection.writeData(Uint8List.fromList(_generator.row(cols)));
   }
 
-  @override
   void image(Image imgSrc, {PosAlign align = PosAlign.center}) {
-    _usbWrite.write(Uint8List.fromList(_generator.image(imgSrc, align: align)));
+    _bluetoothConnection.writeData(Uint8List.fromList(_generator.image(imgSrc, align: align)));
   }
 
   @override
@@ -139,7 +145,7 @@ class USBPrinter extends Printer {
     bool highDensityVertical = true,
     PosImageFn imageFn = PosImageFn.bitImageRaster,
   }) {
-    _usbWrite.write(Uint8List.fromList(_generator.imageRaster(
+    _bluetoothConnection.writeData(Uint8List.fromList(_generator.imageRaster(
       image,
       align: align,
       highDensityHorizontal: highDensityHorizontal,
@@ -157,7 +163,7 @@ class USBPrinter extends Printer {
     BarcodeText textPos = BarcodeText.below,
     PosAlign align = PosAlign.center,
   }) {
-    _usbWrite.write(Uint8List.fromList(_generator.barcode(
+    _bluetoothConnection.writeData(Uint8List.fromList(_generator.barcode(
       barcode,
       width: width,
       height: height,
@@ -174,17 +180,17 @@ class USBPrinter extends Printer {
     QRSize size = QRSize.Size4,
     QRCorrection cor = QRCorrection.L,
   }) {
-    _usbWrite.write(Uint8List.fromList(_generator.qrcode(text, align: align, size: size, cor: cor)));
+    _bluetoothConnection.writeData(Uint8List.fromList(_generator.qrcode(text, align: align, size: size, cor: cor)));
   }
 
   @override
   void drawer({PosDrawer pin = PosDrawer.pin2}) {
-    _usbWrite.write(Uint8List.fromList(_generator.drawer(pin: pin)));
+    _bluetoothConnection.writeData(Uint8List.fromList(_generator.drawer(pin: pin)));
   }
 
   @override
   void hr({String ch = '-', int len, int linesAfter = 0}) {
-    _usbWrite.write(Uint8List.fromList(_generator.hr(ch: ch, linesAfter: linesAfter)));
+    _bluetoothConnection.writeData(Uint8List.fromList(_generator.hr(ch: ch, linesAfter: linesAfter)));
   }
 
   @override
@@ -194,11 +200,13 @@ class USBPrinter extends Printer {
     int linesAfter = 0,
     int maxCharsPerLine,
   }) {
-    _usbWrite.write(Uint8List.fromList(_generator.textEncoded(
+    _bluetoothConnection.writeData(Uint8List.fromList(_generator.textEncoded(
       textBytes,
       styles: styles,
       linesAfter: linesAfter,
       maxCharsPerLine: maxCharsPerLine,
     )));
   }
+
+  // Future<dynamic> get allSend => _bluetoothConnection.writeData;
 }
